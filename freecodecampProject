@@ -1,0 +1,317 @@
+function checkCashRegister(price, cash, cid) {
+
+//Data Structures
+// example of Cash-in-drawer array passed into function as parameter :
+// const cid = [["PENNY", 1.01],
+// ["NICKEL", 2.05],
+// ["DIME", 3.1],
+// ["QUARTER", 4.25],
+// ["ONE", 90],
+// ["FIVE", 55],
+// ["TEN", 20],
+// ["TWENTY", 60],
+// ["ONE HUNDRED", 100]]
+
+
+
+//Cash in Drawer in pennies or cents
+//get CID in human readable variables
+const cidPennies = cid[0][1]*100;
+const cidNickels = cid[1][1]*100;
+const cidDimes = cid[2][1]*100;
+const cidQuarters = cid[3][1]*100;
+const cidOnes = cid[4][1]*100;
+const cidFives = cid[5][1]*100;
+const cidTens = cid[6][1]*100;
+const cidTwenties = cid[7][1]*100;
+const cidHundreds = cid[8][1]*100;
+
+//return object
+let resultObj = {'status': '', 'change':[] }
+//array at to add to return object end of function
+const giveChangeArr = [];
+//variable to count change as it is given
+let changeAcc = 0;
+//variable to keep coins
+let coins = 0;
+
+
+//Calculated values
+let totalCID = 0;
+//calculate total cash in drawer as cents
+for (let i = 0; i < cid.length; i++){
+ totalCID += (cid[i][1]*100)
+}
+
+//Functions
+function pennyFunction(coins){
+  coins = parseInt(coins)
+  if (coins <= cidPennies){
+    giveChangeArr.push(["PENNY", coins/100])
+    resultObj.change = giveChangeArr;
+    changeAcc = changeAcc + coins;
+    changeRemaining = changeDue - changeAcc;
+    if (changeRemaining == 0){resultObj.status = "OPEN"; return resultObj}else{return resultObj}
+     //returns to calling function
+  } else if (pennies > cidPennies){
+     //cannot give exact change
+     resultObj.status = "INSUFFICIENT_FUNDS"
+     resultObj.change = []
+     return resultObj; //returns to calling function
+  }
+}
+
+function nickelFunction(coins){
+ 
+  coins = parseInt(coins);
+  if (coins < 5){resultObj = pennyFunction(coins); return resultObj}
+  
+  if(cidNickels >= 5 && coins >= 5){
+    let numNickels = (parseInt(coins / 5));
+    giveChangeArr.push(["NICKEL", numNickels*5/100])
+    resultObj.change = giveChangeArr;
+    changeAcc = changeAcc + numNickels*5;
+    changeRemaining = changeDue - changeAcc;
+    if (changeRemaining == 0){resultObj.status = "OPEN"; return resultObj
+      }else{
+        resultObj = pennyFunction(changeRemaining)
+        return resultObj
+      } //returns to calling function
+  } else if (cidNickels < 5 ){
+    //if there aren't enough nickels check if there are any pennies
+    resultObj = pennyFunction(coins)
+    if (resultObj.status == "INSUFFICIENT_FUNDS" || resultObj.status == "OPEN"){return resultObj}
+  }
+}
+function dimesFunction(coins){
+  coins = parseInt(coins)
+  if (coins < 10){//if less than 10 cents
+    resultObj = nickelFunction(coins)
+    return resultObj;
+  }
+  if(cidDimes >= 10){//if have one dime 0.10 x 100 = 10
+    let numDimes = (parseInt(coins / 10));
+    giveChangeArr.push(["DIME", numDimes*10/100])
+    resultObj.change = giveChangeArr;
+    changeAcc = changeAcc + numDimes*10;
+    changeRemaining = changeDue - changeAcc;
+    if (changeRemaining == 0){resultObj.status = "OPEN"; return resultObj} 
+    else if (changeRemaining >=5){
+      resultObj = nickelFunction(changeRemaining)
+      return resultObj;
+    }else if (changeRemaining < 5){
+      resultObj = pennyFunction(changeRemaining)
+      return resultObj;}//returns to calling function
+    } else if (cidDimes < 10){
+      resultObj = nickelFunction(coins)
+      if (resultObj.status == "INSUFFICIENT_FUNDS"|| resultObj.status == "OPEN"){return resultObj}//returns to calling function
+    }
+}
+function quarterFunction(coins){
+  coins = parseInt(coins);
+  if (coins < 25){
+    //if less than 1 quarter
+    resultObj = dimesFunction(coins);
+    return resultObj;
+  }
+  if (cidQuarters >= coins){ //if have one quarter .25 x 100 = 25
+      let numQuarters = (parseInt(coins / 25));
+      giveChangeArr.push(["QUARTER", numQuarters* 25/100])
+      resultObj.change = giveChangeArr;
+      changeAcc = changeAcc + numQuarters*25;
+      changeRemaining = changeDue - changeAcc;
+      if (changeRemaining == 0){resultObj.status = "OPEN"; return resultObj
+        }else{
+          resultObj = dimesFunction(changeRemaining)
+          return resultObj;
+      }
+      
+      } else if (cidQuarters < 25){
+        resultObj = dimesFunction(coins)
+        if (resultObj.status == "INSUFFICIENT_FUNDS"|| resultObj.status == "OPEN"){return resultObj}//returns to calling function
+      }
+  }
+
+
+  function hundredFunction(dollars){
+    if (dollars < 10000){ //if less than one hundred dollars skip and go directly to 20's
+      resultObj = twentyFunction(dollars);
+      return resultObj;
+    }
+    if (cidHundreds >= dollars){
+      let numHundred = parseInt(dollars/10000);
+      giveChangeArr.push(["HUNDRED", numHundred*100])
+      resultObj.change = giveChangeArr;
+      changeAcc = changeAcc + numHundred*100;
+      changeRemaining = billsDue - changeAcc;
+      
+      if (changeRemaining == 0){
+        resultObj.status = "OPEN";
+        return resultObj;
+      }else{
+        resultObj = twentyFunction(changeRemaining);
+        return resultObj;
+      }
+    }
+  }
+  
+  function twentyFunction(dollars){
+    if(dollars < 2000 || cidTwenties == 0){
+      resultObj = tenFunction(dollars);
+      return resultObj;
+    }
+    
+      
+      let numTwenty = parseInt(dollars/2000);
+      if (cidTwenties >= numTwenty*20*100){
+      giveChangeArr.push(["TWENTY", numTwenty*20])
+      resultObj.change = giveChangeArr;
+      changeAcc = changeAcc + numTwenty*100;
+      changeRemaining = billsDue - changeAcc;
+      if (changeRemaining == 0){resultObj.status = "OPEN";return resultObj;}
+    }else{
+        giveChangeArr.push(["TWENTY", cidTwenties/100])
+        resultObj.change = giveChangeArr;
+        changeAcc = changeAcc + cidTwenties;
+        changeRemaining = billsDue - changeAcc;
+        resultObj = tenFunction(changeRemaining);
+        return resultObj
+    }
+   } 
+  
+
+  function tenFunction(dollars){
+    if (dollars < 1000 || cidTens == 0){
+      resultObj = fiveFunction(dollars);
+      return resultObj;
+    }
+    let numTens = parseInt(dollars/1000);
+    if (cidTens >= numTens*10*100){
+      giveChangeArr.push(["TEN", numTens*10])
+      resultObj.change = giveChangeArr;
+      changeAcc = changeAcc + numTens*10*100;
+      changeRemaining = billsDue - changeAcc;
+      if (changeRemaining == 0){resultObj.status = "OPEN"; return resultObj;}
+    }else{
+      giveChangeArr.push(["TEN", cidTens/100])
+      resultObj.change = giveChangeArr;
+      changeAcc = changeAcc + cidTens;
+      changeRemaining = billsDue - changeAcc;
+      resultObj = fiveFunction(changeRemaining);
+      return resultObj;
+    }
+  }
+ 
+
+  function fiveFunction(dollars){
+    if (dollars < 500){
+      resultObj = oneFunction(dollars);
+      return resultObj;
+    }
+    let numFives = parseInt(dollars/500);
+    if (cidFives >= numFives*5*100){
+      giveChangeArr.push(["FIVE", numFives*5])
+      resultObj.change = giveChangeArr;
+      changeAcc = changeAcc + numFives*5*100;
+      changeRemaining = billsDue - changeAcc;
+      if (changeRemaining == 0){resultObj.status = "OPEN";return resultObj;} else{
+        resultObj = oneFunction(changeRemaining)
+        return resultObj;
+      }
+      
+    }else{
+        resultObj = oneFunction(changeRemaining);
+        return resultObj;
+    }
+  }
+  
+
+  function oneFunction(dollars){
+    if (cidOnes >= dollars){
+      giveChangeArr.push(["ONE", dollars/100])
+      resultObj.change = giveChangeArr;
+      changeAcc = changeAcc + dollars;
+      changeRemaining = billsDue - changeAcc;
+      if (changeRemaining == 0){resultObj.status = "OPEN"; return resultObj;} 
+    } else if(cidOnes < dollars){
+      resultObj = quarterFunction(changeRemaining)
+      return resultObj;
+    }
+  }
+
+//calculate purchase price, payment cash and changeDue in pennies or cents
+//price and cash passed into function as parameters
+let priceCents = Math.round(price*100);
+let pymntCents = Math.round(cash*100);
+let changeDue = pymntCents - priceCents;
+let changeRemaining = changeDue - changeAcc;
+let changeDueStr = (changeDue).toString();
+let pennies = parseInt(changeDueStr.charAt(changeDueStr.length-1))
+let billsDue = 0;
+
+
+
+//if cash in drawer is not sufficient to give change
+if (totalCID < changeDue){
+  resultObj.status = "INSUFFICIENT_FUNDS"
+  resultObj.change = []
+  return resultObj//returns checkCashRegister function
+}
+//if change will use up all the cash in drawer
+if (totalCID == changeDue){
+  resultObj.status = "CLOSED"
+  resultObj.change = cid
+  return resultObj //returns checkCashRegister function
+}
+
+//calculate total coins in drawer
+let coinsCID = cidPennies + cidNickels + cidDimes + cidQuarters;
+
+//if change is more than 1 dollar, can use bills and coins
+if (changeDue > 100){
+  coins = parseInt(changeDueStr.charAt(changeDueStr.length-2) +changeDueStr.charAt(changeDueStr.length-1)) //last two characters of changeDue
+  billsDue = changeDue - coins;
+
+  
+  resultObj = hundredFunction(billsDue)
+  resultObj = quarterFunction(coins)
+  return resultObj;
+}
+
+
+//if change due is less than 1 dollar, can use only coins to give change
+if (changeDue < 100){
+  if (coinsCID < changeDue){
+    resultObj.status = "INSUFFICIENT_FUNDS"
+    resultObj.change = []
+    return resultObj//returns checkCashRegister function
+  } else {
+    resultObj = quarterFunction(changeDue)
+    return resultObj;
+  }
+}
+
+
+//output
+
+return resultObj;
+}//end of function checkCashRegister
+
+
+
+
+
+
+
+// Example cash-in-drawer array:
+// [["PENNY", 1.01],
+// ["NICKEL", 2.05],
+// ["DIME", 3.1],
+// ["QUARTER", 4.25],
+// ["ONE", 90],
+// ["FIVE", 55],
+// ["TEN", 20],
+// ["TWENTY", 60],
+// ["ONE HUNDRED", 100]]
+
+checkCashRegister(19.5, 20, [["PENNY", 1.01], ["NICKEL", 2.05], ["DIME", 3.1], ["QUARTER", 4.25], ["ONE", 90], ["FIVE", 55], ["TEN", 20], ["TWENTY", 60], ["ONE HUNDRED", 100]]);
